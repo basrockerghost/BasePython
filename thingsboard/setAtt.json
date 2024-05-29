@@ -1,0 +1,36 @@
+{
+    "type": "object",
+    "properties": {
+        "latitude": {
+            "type": "number"
+        },
+        "longtitude": {
+            "type": "number"
+        },
+        "name": {
+            "type": "string"
+        },
+        "create_date": {
+            "type": "number"
+        },
+        "upload_date": {
+            "type": "number"
+        },
+        "product_id": {
+            "type": "string"
+        },
+        "product_name": {
+            "type": "string"
+        },
+        "device_id": {
+            "type": "string"
+        },
+        "firmware_version": {
+            "type": "string"
+        },
+        "device_model": {
+            "type": "string"
+        }
+    },
+    "required": ["latitude", "longtitude", "name", "create_date", "upload_date", "product_id", "product_name", "device_id"]
+}
