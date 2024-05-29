@@ -16,9 +16,9 @@ headers = {
 # }
 
 def pullProductName() :
-    product = [["1", "Bread", 34.6777116, 135.403636, "คุณ A"], ["2", "Snack", 34.6777116, 135.403636, "คุณ B"], ["3", "M&M", 35.6684103, 139.5760574, "คุณ C"], ["4", "Chocolate", 33.5598967, 130.355533, "คุณ D"], ["5", "huh", 35.634426, 139.3485075, "คุณ E"]]
+    product = [["1", "Bread", 34.6777116, 135.403636, "คุณ A", 1716955754591, 1716972828257], ["2", "Snack", 34.6777116, 135.403636, "คุณ B", 1716958441447, 1716972828257], ["3", "M&M", 35.6684103, 139.5760574, "คุณ C", 1716958459496, 1716972828257], ["4", "Chocolate", 33.5598967, 130.355533, "คุณ D", 1716958477722, 1716972828257], ["5", "huh", 35.634426, 139.3485075, "คุณ E", 1716958486692, 1716972828257]]
     randomProduct = random.choice(product)
-    return {"product_id" : randomProduct[0], "product_name" : randomProduct[1], "latitude" : randomProduct[2], "longitude" : randomProduct[3], "name" : randomProduct[4]}
+    return {"product_id" : randomProduct[0], "product_name" : randomProduct[1], "latitude" : randomProduct[2], "longitude" : randomProduct[3], "name" : randomProduct[4], "create_date" : randomProduct[5], "upload_date" : randomProduct[6]}
  
 
 
@@ -40,4 +40,4 @@ def send_telemetry_data(data):
 while True:
     telemetry_data = pullProductName()
     send_telemetry_data(telemetry_data)
-    time.sleep(5)  # Send data every 5 seconds
+    time.sleep(60)  # Send data every 60 seconds
