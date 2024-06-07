@@ -1,0 +1,59 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Picker Example</title>
+</head>
+<body>
+    <form>
+        <label for="startdate">Start Date:</label>
+        <input type="date" id="startdate" name="startdate">
+        
+        <label for="enddate">End Date:</label>
+        <input type="date" id="enddate" name="enddate">
+
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Picker Example</title>
+    <script>
+        function getDates(event) {
+            event.preventDefault(); // Prevent form submission to demonstrate retrieving values
+
+            // Get the values from the input fields
+            const startDate = document.getElementById('startdate').value;
+            const endDate = document.getElementById('enddate').value;
+
+            // Log the values to the console or handle them as needed
+            console.log('Start Date:', startDate);
+            console.log('End Date:', endDate);
+
+            // If you want to use these values as parameters in a URL or an API call, you can do it like this:
+            const params = new URLSearchParams({ startdate: startDate, enddate: endDate });
+            console.log('Params:', params.toString());
+
+            // You can then use the params in an API call or navigate to a new URL
+            // For example: window.location.href = `yourApiEndpoint?${params.toString()}`;
+        }
+    </script>
+</head>
+<body>
+    <form onsubmit="getDates(event)">
+        <label for="startdate">Start Date:</label>
+        <input type="date" id="startdate" name="startdate">
+        
+        <label for="enddate">End Date:</label>
+        <input type="date" id="enddate" name="enddate">
+
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
