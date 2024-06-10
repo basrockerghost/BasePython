@@ -215,26 +215,29 @@
 </head>
 <body>
     <h1>API Data to CSV</h1>
-    <form>
+    <form id="dateform">
         <label for="startdate">Start Date:</label>
-        <input type="datetime-local" id="startdate" name="startdate">
+        <input type="datetime-local" id="startdate" name="startdate" style="margin: 8px;"> <br>
         
         <label for="enddate">End Date:</label>
-        <input type="datetime-local" id="enddate" name="enddate">
+        <input type="datetime-local" id="enddate" name="enddate" style="margin: 8px;"> <br>
 
-        <button id="downloadBtn">Download CSV</button>
+        <button id="downloadBtn" style="margin: 8px;">Download CSV</button>
     </form>
 
     <script>
-        document.getElementById('downloadBtn').addEventListener('click', async function() {
+        document.getElementById('dateform').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
             // Replace the URL with your API endpoint
             const apiUrl = "http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries";
 
             // Set your authorization token if required
-            const authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiYjNhZTBiNTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MTkyZDFkYy01YmYxLTRiNzEtYjdkYi04YmQxZjMyMGY4MWYiLCJpc3MiOiJ0aGluZ3Nib2FyZC5pbyIsImlhdCI6MTcxNzc0MTQxNiwiZXhwIjoxNzE3NzUwNDE2LCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiYjM3N2I5MTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.OEqTZKR8J9SF89UT_-_XE8sTr5i532kW4rmxQkMaVO8nwzZQa8U7FNjr7ca0EUVvQujVSpcO2b5bQFKxuJtXEQ";
+            const authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiYjNhZTBiNTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MTkyZDFkYy01YmYxLTRiNzEtYjdkYi04YmQxZjMyMGY4MWYiLCJpc3MiOiJ0aGluZ3Nib2FyZC5pbyIsImlhdCI6MTcxODAwMTkyOCwiZXhwIjoxNzE4MDEwOTI4LCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiYjM3N2I5MTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.cXTgd4zpFcBC5H1z9kIf3JL4qCta70XSeKafLHFgQv7Kcxpl-jAiLcmTAVCnNLJFFOT8COYvxdrt_Yf0kXqqNg";
 
-            const startDate = document.getElementById('startdate').value;
-            const endDate = document.getElementById('enddate').value;
+
+            const startDate = new Date(document.getElementById('startdate').value).getTime();
+            const endDate = new Date(document.getElementById('enddate').value).getTime();
 
             // Set any additional parameters needed for the API request
             const params = new URLSearchParams({
@@ -299,4 +302,3 @@
     </script>
 </body>
 </html>
-
