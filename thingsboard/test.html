@@ -216,6 +216,13 @@
 <body>
     <h1>API Data to CSV</h1>
     <form id="dateform">
+        <select name="apiSelect" id="apiSelector">
+            <option value="api1">Test01</option>
+            <option value="api2">Test02</option>
+            <option value="api3">Test03</option>
+            <option value="api4">Test04</option>
+            <option value="api5">Test05</option>
+        </select> <br>
         <label for="startdate">Start Date:</label>
         <input type="datetime-local" id="startdate" name="startdate" style="margin: 8px;"> <br>
         
@@ -229,12 +236,31 @@
         document.getElementById('dateform').addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            // Replace the URL with your API endpoint
-            const apiUrl = "http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries";
+            const selectedApi = document.getElementById('apiSelector').value;
+            let apiUrl;
+            let authToken;
+            switch (selectedApi) {
+                case 'api1':
+                    apiUrl = 'http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries';
+                    break;
+                case 'api2':
+                    apiUrl = 'http://localhost:8080/api/plugins/telemetry/DEVICE/d6ee5030-2238-11ef-8576-15f192db43b2/values/timeseries';
+                    break;
+                case 'api3':
+                    apiUrl = 'http://localhost:8080/api/plugins/telemetry/DEVICE/4b2a7a50-2239-11ef-8576-15f192db43b2/values/timeseries';
+                    break;
+                case 'api4':
+                    apiUrl = 'http://localhost:8080/api/plugins/telemetry/DEVICE/beff6810-2242-11ef-861c-2f0cea6367d5/values/timeseries';
+                    break;
+                case 'api5':
+                    apiUrl = 'http://localhost:8080/api/plugins/telemetry/DEVICE/078b5620-2243-11ef-861c-2f0cea6367d5/values/timeseries';
+                    break;
+                default :
+                    apiUrl = '';
+            }
 
             // Set your authorization token if required
-            const authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiYjNhZTBiNTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MTkyZDFkYy01YmYxLTRiNzEtYjdkYi04YmQxZjMyMGY4MWYiLCJpc3MiOiJ0aGluZ3Nib2FyZC5pbyIsImlhdCI6MTcxODAwMTkyOCwiZXhwIjoxNzE4MDEwOTI4LCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiYjM3N2I5MTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.cXTgd4zpFcBC5H1z9kIf3JL4qCta70XSeKafLHFgQv7Kcxpl-jAiLcmTAVCnNLJFFOT8COYvxdrt_Yf0kXqqNg";
-
+            authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiYjNhZTBiNTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MTkyZDFkYy01YmYxLTRiNzEtYjdkYi04YmQxZjMyMGY4MWYiLCJpc3MiOiJ0aGluZ3Nib2FyZC5pbyIsImlhdCI6MTcxODAwMTkyOCwiZXhwIjoxNzE4MDEwOTI4LCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiYjM3N2I5MTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.cXTgd4zpFcBC5H1z9kIf3JL4qCta70XSeKafLHFgQv7Kcxpl-jAiLcmTAVCnNLJFFOT8COYvxdrt_Yf0kXqqNg";
 
             const startDate = new Date(document.getElementById('startdate').value).getTime();
             const endDate = new Date(document.getElementById('enddate').value).getTime();
@@ -291,7 +317,7 @@
                 // Create a link element to download the CSV file
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
-                link.download = 'telemetry_data.csv';
+                link.download = 'test.csv';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
