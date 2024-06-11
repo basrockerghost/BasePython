@@ -214,17 +214,20 @@
     <title>API Data to CSV</title>
 </head>
 <body>
-    <h1>API Data to CSV</h1>
-    <form id="dateform">
+    <h3>API Data to CSV</h3>
+    <h6>
+        Enter device : 
         <select name="apiSelect" id="apiSelector">
             <option value="api1">Test01</option>
             <option value="api2">Test02</option>
             <option value="api3">Test03</option>
             <option value="api4">Test04</option>
             <option value="api5">Test05</option>
-        </select> <br>
+        </select>
+    </h6>
+    <form id="dateform">
         <label for="startdate">Start Date:</label>
-        <input type="datetime-local" id="startdate" name="startdate" style="margin: 8px;"> <br>
+        <input type="datetime-local" id="startdate" name="startdate" style="margin: 8px;">
         
         <label for="enddate">End Date:</label>
         <input type="datetime-local" id="enddate" name="enddate" style="margin: 8px;"> <br>
@@ -238,7 +241,6 @@
 
             const selectedApi = document.getElementById('apiSelector').value;
             let apiUrl;
-            let authToken;
             switch (selectedApi) {
                 case 'api1':
                     apiUrl = 'http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries';
@@ -255,17 +257,42 @@
                 case 'api5':
                     apiUrl = 'http://localhost:8080/api/plugins/telemetry/DEVICE/078b5620-2243-11ef-861c-2f0cea6367d5/values/timeseries';
                     break;
-                default :
+                default:
                     apiUrl = '';
             }
 
-            // Set your authorization token if required
-            authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiYjNhZTBiNTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MTkyZDFkYy01YmYxLTRiNzEtYjdkYi04YmQxZjMyMGY4MWYiLCJpc3MiOiJ0aGluZ3Nib2FyZC5pbyIsImlhdCI6MTcxODAwMTkyOCwiZXhwIjoxNzE4MDEwOTI4LCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiYjM3N2I5MTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.cXTgd4zpFcBC5H1z9kIf3JL4qCta70XSeKafLHFgQv7Kcxpl-jAiLcmTAVCnNLJFFOT8COYvxdrt_Yf0kXqqNg";
+            async function getJwtToken() {
+                const url = 'http://localhost:8080/api/auth/login'; // Replace with your ThingsBoard server URL
+                const credentials = {
+                    username: 'tenant@thingsboard.org', // Replace with your ThingsBoard username
+                    password: 'tenant'  // Replace with your ThingsBoard password
+                };
+            
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(credentials)
+                    });
+            
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+            
+                    const data = await response.json();
+                    return data.token; // JWT token
+                } catch (error) {
+                    console.error('Error fetching JWT token:', error);
+                }
+            }
+
+            const token = await getJwtToken();
 
             const startDate = new Date(document.getElementById('startdate').value).getTime();
             const endDate = new Date(document.getElementById('enddate').value).getTime();
 
-            // Set any additional parameters needed for the API request
             const params = new URLSearchParams({
                 keys: 'product_id,product_name,name,latitude,longitude,create_date,upload_date',
                 startTs: startDate,
@@ -276,7 +303,7 @@
                 const response = await fetch(`${apiUrl}?${params.toString()}`, {
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-Authorization': authToken
+                        'X-Authorization': `Bearer ${token}`
                     }
                 });
 
@@ -286,7 +313,6 @@
 
                 const data = await response.json();
 
-                // Organize data by timestamp
                 const timestampData = {};
 
                 for (const key in data) {
@@ -299,7 +325,6 @@
                     });
                 }
 
-                // Convert organized data to CSV
                 const csvRows = [];
                 const headers = ['timestamp', 'product_id', 'product_name', 'name', 'latitude', 'longitude', 'create_date', 'upload_date'];
                 csvRows.push(headers.join(','));
@@ -311,10 +336,8 @@
 
                 const csvString = csvRows.join('\n');
 
-                // Create a Blob from the CSV string
                 const blob = new Blob([csvString], { type: 'text/csv' });
 
-                // Create a link element to download the CSV file
                 const link = document.createElement('a');
                 link.href = window.URL.createObjectURL(blob);
                 link.download = 'test.csv';
@@ -328,3 +351,6 @@
     </script>
 </body>
 </html>
+
+
+
