@@ -1,0 +1,451 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Data Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Data Viewer</h1>
+    <input type="file" id="uploadCsv" accept=".csv" />
+    <table id="csvTable"></table>
+
+    <script>
+        document.getElementById('uploadCsv').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                Papa.parse(file, {
+                    header: true,
+                    complete: function(results) {
+                        const data = results.data;
+                        const table = document.getElementById('csvTable');
+                        table.innerHTML = ''; // Clear any existing content
+
+                        // Create table header
+                        const headers = Object.keys(data[0]);
+                        const thead = document.createElement('thead');
+                        const headerRow = document.createElement('tr');
+                        headers.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow.appendChild(th);
+                        });
+                        thead.appendChild(headerRow);
+                        table.appendChild(thead);
+
+                        // Create table body
+                        const tbody = document.createElement('tbody');
+                        data.forEach(row => {
+                            const tr = document.createElement('tr');
+                            headers.forEach(header => {
+                                const td = document.createElement('td');
+                                td.textContent = row[header];
+                                tr.appendChild(td);
+                            });
+                            tbody.appendChild(tr);
+                        });
+                        table.appendChild(tbody);
+                    },
+                    error: function(error) {
+                        console.error('Error reading CSV file:', error);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data to CSV</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>API Data to CSV</h1>
+    <button id="downloadBtn">Download CSV</button>
+
+    <script>
+        $(document).ready(function() {
+            $('#downloadBtn').click(function() {
+                // Replace the URL with your API endpoint
+                const apiUrl = "http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries";
+
+                // Set your authorization token if required
+                const authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiYjNhZTBiNTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MTkyZDFkYy01YmYxLTRiNzEtYjdkYi04YmQxZjMyMGY4MWYiLCJpc3MiOiJ0aGluZ3Nib2FyZC5pbyIsImlhdCI6MTcxNzc0MTQxNiwiZXhwIjoxNzE3NzUwNDE2LCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiYjM3N2I5MTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.OEqTZKR8J9SF89UT_-_XE8sTr5i532kW4rmxQkMaVO8nwzZQa8U7FNjr7ca0EUVvQujVSpcO2b5bQFKxuJtXEQ";
+
+                // Set any additional parameters needed for the API request
+                const params = {
+                    keys: 'product_id,product_name,name,latitude,longitude,create_date,upload_date',
+                    startTs: 1717693200000,
+                    endTs: 1717779599000
+                };
+
+                // Make GET request to API
+                $.ajax({
+                    url: apiUrl,
+                    type: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Authorization': authToken
+                    },
+                    data: params,
+                    success: function(response) {
+                        // Convert JSON response to CSV
+                        const csvData = response.map(function(row) {
+                            return Object.values(row).join(',');
+                        }).join('\n');
+
+                        // Create a Blob from the CSV data
+                        const blob = new Blob([csvData], { type: 'text/csv' });
+
+                        // Create a temporary link to download the CSV file
+                        const link = document.createElement('a');
+                        link.href = window.URL.createObjectURL(blob);
+                        link.download = 'api_data.csv';
+                        link.click();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching data:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> -->
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data to CSV</title>
+</head>
+<body>
+    <h1>API Data to CSV</h1>
+    <button id="downloadBtn">Download CSV</button>
+
+    <script>
+        document.getElementById('downloadBtn').addEventListener('click', async function() {
+            // Replace the URL with your API endpoint
+            const apiUrl = "http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries";
+
+            // Set your authorization token if required
+            const authToken = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZW5hbnRAdGhpbmdzYm9hcmQub3JnIiwidXNlcklkIjoiYjNhZTBiNTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwic2NvcGVzIjpbIlRFTkFOVF9BRE1JTiJdLCJzZXNzaW9uSWQiOiI5MTkyZDFkYy01YmYxLTRiNzEtYjdkYi04YmQxZjMyMGY4MWYiLCJpc3MiOiJ0aGluZ3Nib2FyZC5pbyIsImlhdCI6MTcxNzc0MTQxNiwiZXhwIjoxNzE3NzUwNDE2LCJlbmFibGVkIjp0cnVlLCJpc1B1YmxpYyI6ZmFsc2UsInRlbmFudElkIjoiYjM3N2I5MTAtMThjMC0xMWVmLThmYTItMGZlNzYyOWRlNjBlIiwiY3VzdG9tZXJJZCI6IjEzODE0MDAwLTFkZDItMTFiMi04MDgwLTgwODA4MDgwODA4MCJ9.OEqTZKR8J9SF89UT_-_XE8sTr5i532kW4rmxQkMaVO8nwzZQa8U7FNjr7ca0EUVvQujVSpcO2b5bQFKxuJtXEQ";
+
+            // Set any additional parameters needed for the API request
+            const params = new URLSearchParams({
+                keys: 'product_id,product_name,name,latitude,longitude,create_date,upload_date',
+                startTs: 1717693200000,
+                endTs: 1717779599000
+            });
+
+            try {
+                const response = await fetch(`${apiUrl}?${params.toString()}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Authorization': authToken
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const data = await response.json();
+
+                // Convert JSON to CSV
+                const csvRows = [];
+                const headers = ['timestamp', 'key', 'value'];
+                csvRows.push(headers.join(','));
+
+                for (const key in data) {
+                    data[key].forEach(entry => {
+                        csvRows.push([entry.ts, key, entry.value].join(','));
+                    });
+                }
+
+                const csvString = csvRows.join('\n');
+
+                // Create a Blob from the CSV string
+                const blob = new Blob([csvString], { type: 'text/csv' });
+
+                // Create a link element to download the CSV file
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = 'api_data.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data to CSV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+        }
+
+        #apiSearch {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #idSearch {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        .autocomplete-active {
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h3>API Data to CSV</h3>
+    <div class="autocomplete">
+        <div>
+            <h4>
+                Enter device : 
+                <input type="text" id="apiSearch" placeholder="Enter device..." oninput="searchDevices()" style="height: 3px; width: 180px;">
+            </h4>
+            <div id="autocomplete-list1" class="autocomplete-items"></div>
+            <h4>
+                Enter Product ID : 
+                <input type="text" id="idSearch" placeholder="Enter product id..." oninput="searchProid()" style="height: 3px; width: 180px;">
+            </h4>
+            <div id="autocomplete-list2" class="autocomplete-items"></div>
+        </div>
+    </div>
+    <form id="dateform">
+        <label for="startdate">Start Date:</label>
+        <input type="datetime-local" id="startdate" name="startdate" style="margin: 8px;">
+
+        <label for="enddate">End Date:</label>
+        <input type="datetime-local" id="enddate" name="enddate" style="margin: 8px;"> 
+
+        <label for="createdate">Create Date:</label>
+        <input type="datetime-local" id="createdate" name="createdate" style="margin: 8px;"> <br>
+
+        <button id="downloadBtn" style="margin: 8px;">Download CSV</button>
+    </form>
+
+    <script>
+        const devices = [
+            { name: 'test1', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries' },
+            { name: 'test2', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/d6ee5030-2238-11ef-8576-15f192db43b2/values/timeseries' },
+            { name: 'test3', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/4b2a7a50-2239-11ef-8576-15f192db43b2/values/timeseries' },
+            { name: 'test4', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/beff6810-2242-11ef-861c-2f0cea6367d5/values/timeseries' },
+            { name: 'test5', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/078b5620-2243-11ef-861c-2f0cea6367d5/values/timeseries' }
+        ];
+
+        let selectedDevice = '';
+        let selectedId = '';
+
+        function searchDevices() {
+            const query = document.getElementById('apiSearch').value.toLowerCase();
+            const results = devices.filter(device => device.name.toLowerCase().includes(query));
+            displayDevices(results);
+        }
+        function searchProid() {
+            const query = document.getElementById('idSearch').value.toLowerCase();
+            const results = id.filter(device => device.name.toLowerCase().includes(query));
+            displayProids(results);
+        }
+
+        function displayDevices(results) {
+            const resultsContainer = document.getElementById('autocomplete-list1');
+            resultsContainer.innerHTML = '';
+            results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.textContent = result.name;
+                resultItem.onclick = () => {
+                    document.getElementById('apiSearch').value = result.name;
+                    resultsContainer.innerHTML = '';
+                };
+                resultsContainer.appendChild(resultItem);
+            });
+        }
+        function displayProids(results) {
+            const resultsContainer = document.getElementById('autocomplete-list2');
+            resultsContainer.innerHTML = '';
+            results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.textContent = result.name;
+                resultItem.onclick = () => {
+                    document.getElementById('idSearch').value = result.name;
+                    resultsContainer.innerHTML = '';
+                };
+                resultsContainer.appendChild(resultItem);
+            });
+        }
+        
+        async function getJwtToken() {
+            const url = 'http://localhost:8080/api/auth/login'; // Replace with your ThingsBoard server URL
+            const credentials = {
+                username: 'tenant@thingsboard.org', // Replace with your ThingsBoard username
+                password: 'tenant'  // Replace with your ThingsBoard password
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(credentials)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const data = await response.json();
+                return data.token; // JWT token
+            } catch (error) {
+                console.error('Error fetching JWT token:', error);
+            }
+        }
+
+        document.getElementById('dateform').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const enterApi = document.getElementById('apiSearch').value;
+            const device = devices.find(device => device.name === enterApi);
+            const enterId = document.getElementById('idSearch').value;
+            const id = devices.find(device => device.name === enterApi);
+
+            if (!selectedDevice) {
+                alert('Enter a valid device.');
+            } else if (!selectedId) {
+                alert('Enter a valid id.');
+            }
+
+            const token = await getJwtToken();
+            const startDate = new Date(document.getElementById('startdate').value).getTime();
+            const endDate = new Date(document.getElementById('enddate').value).getTime();
+            const createDate = new Date(document.getElementById('createdate').value).getTime();
+
+            const params = new URLSearchParams({
+                keys: 'product_id,product_name,name,latitude,longitude,create_date,upload_date',
+                startTs: startDate,
+                endTs: endDate,
+                createDate: createDate
+            });
+
+            try {
+                const response = await fetch(`${device.url}?${params.toString()}`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const data = await response.json();
+
+                const timestampData = {};
+
+                for (const key in data) {
+                    data[key].forEach(entry => {
+                        const timestamp = entry.ts;
+                        if (!timestampData[timestamp]) {
+                            timestampData[timestamp] = [];
+                        }
+                        timestampData[timestamp].push(entry.value);
+                    });
+                }
+
+                const csvRows = [];
+                const headers = ['timestamp', 'product_id', 'product_name', 'name', 'latitude', 'longitude', 'create_date', 'upload_date'];
+                csvRows.push(headers.join(','));
+
+                for (const timestamp in timestampData) {
+                    const row = [timestamp, ...timestampData[timestamp]];
+                    csvRows.push(row.join(','));
+                }
+
+                const csvString = csvRows.join('\n');
+
+                const blob = new Blob([csvString], { type: 'text/csv' });
+
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = device.name+'.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+    </script>
+</body>
+</html>
+

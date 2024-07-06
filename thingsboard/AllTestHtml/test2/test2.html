@@ -1,0 +1,500 @@
+<!-- <!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data to CSV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+        }
+
+        #apiSearch {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        #idSearch {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        .autocomplete-active {
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h3>API Data to CSV</h3>
+    <div class="autocomplete">
+        <div>
+            <h4>
+                Enter device : 
+                <input type="text" id="apiSearch" placeholder="Enter device or 'all'..." oninput="searchDevices()" style="height: 3px; width: 180px;">
+            </h4>
+            <div id="autocomplete-list1" class="autocomplete-items"></div>
+        </div>
+    </div>
+    <form id="dateform">
+        <h4>Select from timestamp</h4>
+        <label for="startdate">Start Date:</label>
+        <input type="datetime-local" id="startdate" name="startdate" style="margin: 8px;">
+
+        <label for="enddate">End Date:</label>
+        <input type="datetime-local" id="enddate" name="enddate" style="margin: 8px;"> <br>
+
+        <button id="downloadBtn" style="margin: 8px;">Download CSV</button>
+    </form>
+
+    <form id="dateform2">
+        <h4>select from createDate</h4>
+    </form>
+
+    <script>
+        const devices = [
+            { name: 'test1', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries' },
+            { name: 'test2', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/d6ee5030-2238-11ef-8576-15f192db43b2/values/timeseries' },
+            { name: 'test3', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/4b2a7a50-2239-11ef-8576-15f192db43b2/values/timeseries' },
+            { name: 'test4', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/beff6810-2242-11ef-861c-2f0cea6367d5/values/timeseries' },
+            { name: 'test5', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/078b5620-2243-11ef-861c-2f0cea6367d5/values/timeseries' }
+        ];
+
+        function searchDevices() {
+            const query = document.getElementById('apiSearch').value.toLowerCase();
+            const results = devices.filter(device => device.name.toLowerCase().includes(query));
+            if (query === 'all') {
+                results.push({ name: 'all', url: '' });
+            }
+            displayDevices(results);
+        }
+
+        function displayDevices(results) {
+            const resultsContainer = document.getElementById('autocomplete-list1');
+            resultsContainer.innerHTML = '';
+            results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.textContent = result.name;
+                resultItem.onclick = () => {
+                    document.getElementById('apiSearch').value = result.name;
+                    resultsContainer.innerHTML = '';
+                };
+                resultsContainer.appendChild(resultItem);
+            });
+        }
+
+        async function getJwtToken() {
+            const url = 'http://localhost:8080/api/auth/login'; // Replace with your ThingsBoard server URL
+            const credentials = {
+                username: 'tenant@thingsboard.org', // Replace with your ThingsBoard username
+                password: 'tenant'  // Replace with your ThingsBoard password
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(credentials)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const data = await response.json();
+                return data.token; // JWT token
+            } catch (error) {
+                console.error('Error fetching JWT token:', error);
+            }
+        }
+
+        document.getElementById('dateform').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const enterApi = document.getElementById('apiSearch').value;
+            const selectedDevice = devices.find(device => device.name === enterApi);
+            const fetchAll = !enterApi || enterApi.toLowerCase() === 'all';
+
+            const token = await getJwtToken();
+            const startDate = new Date(document.getElementById('startdate').value).getTime();
+            const endDate = new Date(document.getElementById('enddate').value).getTime();
+
+            const params = new URLSearchParams({
+                keys: 'product_id,product_name,name,latitude,longitude,create_date,upload_date',
+                startTs: startDate,
+                endTs: endDate
+            });
+
+            const allData = [];
+            const urlsToFetch = fetchAll ? devices.map(device => device.url) : [selectedDevice.url];
+
+            try {
+                const fetchPromises = urlsToFetch.map(url =>
+                    fetch(`${url}?${params.toString()}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Authorization': `Bearer ${token}`
+                        }
+                    }).then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                );
+
+                const allResponses = await Promise.all(fetchPromises);
+                allResponses.forEach(data => {
+                    for (const key in data) {
+                        data[key].forEach(entry => allData.push({ ...entry, key }));
+                    }
+                });
+
+                const timestampData = {};
+
+                allData.forEach(entry => {
+                    const timestamp = entry.ts;
+                    if (!timestampData[timestamp]) {
+                        timestampData[timestamp] = {
+                            timestamp,
+                            product_id: '',
+                            product_name: '',
+                            name: '',
+                            latitude: '',
+                            longitude: '',
+                            create_date: '',
+                            upload_date: ''
+                        };
+                    }
+                    timestampData[timestamp][entry.key] = entry.value;
+                });
+
+                const csvRows = [];
+                const headers = ['timestamp', 'product_id', 'product_name', 'name', 'latitude', 'longitude', 'create_date', 'upload_date'];
+                csvRows.push(headers.join(','));
+
+                for (const timestamp in timestampData) {
+                    const row = headers.map(header => timestampData[timestamp][header] || '');
+                    csvRows.push(row.join(','));
+                }
+
+                const csvString = csvRows.join('\n');
+
+                const blob = new Blob([csvString], { type: 'text/csv' });
+
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = 'ThisIsData.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Data to CSV</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .autocomplete {
+            position: relative;
+            display: inline-block;
+        }
+
+        #apiSearch {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #d4d4d4;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: #fff;
+        }
+
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #fff;
+            border-bottom: 1px solid #d4d4d4;
+        }
+
+        .autocomplete-items div:hover {
+            background-color: #e9e9e9;
+        }
+
+        .autocomplete-active {
+            background-color: DodgerBlue !important;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <h3>API Data to CSV</h3>
+    <div class="autocomplete">
+        <div>
+            <h4>
+                Enter device: 
+                <input type="text" id="apiSearch" placeholder="Enter device or 'all'..." oninput="searchDevices()" style="height: 3px; width: 180px;">
+            </h4>
+            <div id="autocomplete-list1" class="autocomplete-items"></div>
+        </div>
+    </div>
+    <form id="dateform">
+        <label for="filterField">Download csv from: </label>
+        <select id="filterField">
+            <option value="ts">Timestamp</option>
+            <option value="create_date">CreateDate</option>
+        </select>
+        <label for="startdate">Start Date:</label>
+        <input type="datetime-local" id="startdate" name="startdate" style="margin: 8px;">
+
+        <label for="enddate">End Date:</label>
+        <input type="datetime-local" id="enddate" name="enddate" style="margin: 8px;"> <br>
+
+        <button id="downloadBtn" style="margin: 8px;">Download CSV</button>
+    </form>
+    <script>
+        const devices = [
+            { name: 'test1', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/a1a4f640-18d8-11ef-89bf-db5a56a39248/values/timeseries' },
+            { name: 'test2', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/d6ee5030-2238-11ef-8576-15f192db43b2/values/timeseries' },
+            { name: 'test3', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/4b2a7a50-2239-11ef-8576-15f192db43b2/values/timeseries' },
+            { name: 'test4', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/beff6810-2242-11ef-861c-2f0cea6367d5/values/timeseries' },
+            { name: 'test5', url: 'http://localhost:8080/api/plugins/telemetry/DEVICE/078b5620-2243-11ef-861c-2f0cea6367d5/values/timeseries' }
+        ];
+
+        function searchDevices() {
+            const query = document.getElementById('apiSearch').value.toLowerCase();
+            const results = devices.filter(device => device.name.toLowerCase().includes(query));
+            if (query === 'all') {
+                results.push({ name: 'all', url: '' });
+            }
+            displayDevices(results);
+        }
+
+        function displayDevices(results) {
+            const resultsContainer = document.getElementById('autocomplete-list1');
+            resultsContainer.innerHTML = '';
+            results.forEach(result => {
+                const resultItem = document.createElement('div');
+                resultItem.className = 'result-item';
+                resultItem.textContent = result.name;
+                resultItem.onclick = () => {
+                    document.getElementById('apiSearch').value = result.name;
+                    resultsContainer.innerHTML = '';
+                };
+                resultsContainer.appendChild(resultItem);
+            });
+        }
+
+        async function getJwtToken() {
+            const url = 'http://localhost:8080/api/auth/login'; // Replace with your ThingsBoard server URL
+            const credentials = {
+                username: 'tenant@thingsboard.org', // Replace with your ThingsBoard username
+                password: 'tenant'  // Replace with your ThingsBoard password
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(credentials)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const data = await response.json();
+                console.log('JWT Token:', data.token);
+                return data.token; // JWT token
+            } catch (error) {
+                console.error('Error fetching JWT token:', error);
+            }
+        }
+
+        async function fetchDataAndDownloadCSV(startDate, endDate, filterField) {
+            const enterApi = document.getElementById('apiSearch').value;
+            const selectedDevice = devices.find(device => device.name === enterApi);
+            const fetchAll = !enterApi || enterApi.toLowerCase() === 'all';
+        
+            const token = await getJwtToken();
+        
+            const params = new URLSearchParams({
+                keys: 'product_id,product_name,name,latitude,longitude,create_date,upload_date',
+                startTs: startDate,
+                endTs: endDate
+            });
+        
+            const allData = [];
+            const urlsToFetch = fetchAll ? devices.map(device => device.url) : [selectedDevice?.url];
+        
+            if (!urlsToFetch.length || urlsToFetch.includes(undefined)) {
+                console.error('Device URL not found or no device selected');
+                return;
+            }
+        
+            try {
+                const fetchPromises = urlsToFetch.map(url =>
+                    fetch(`${url}?${params.toString()}`, {
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Authorization': `Bearer ${token}`
+                        }
+                    }).then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                );
+        
+                const allResponses = await Promise.all(fetchPromises);
+                console.log('API Responses:', allResponses);
+        
+                allResponses.forEach(data => {
+                    console.log('Data from API:', data);
+                    for (const key in data) {
+                        if (Array.isArray(data[key])) {
+                            data[key].forEach(entry => allData.push({ ...entry, key }));
+                        }
+                    }
+                });
+        
+                console.log('All data fetched:', allData);
+        
+                if (allData.length === 0) {
+                    console.log('No data returned from API');
+                    return;
+                }
+        
+                const timestampData = {};
+        
+                allData.forEach(entry => {
+                    const timestamp = entry.ts;
+                    if (!timestampData[timestamp]) {
+                        timestampData[timestamp] = {
+                            timestamp,
+                            product_id: '',
+                            product_name: '',
+                            name: '',
+                            latitude: '',
+                            longitude: '',
+                            create_date: '',
+                            upload_date: ''
+                        };
+                    }
+                    timestampData[timestamp][entry.key] = entry.value;
+                });
+        
+                let filteredData = Object.values(timestampData);
+        
+                if (filterField === 'create_date') {
+                    console.log('Filtering by create_date');
+                    filteredData = filteredData.filter(entry => {
+                        if (!entry.create_date) {
+                            console.warn('Entry without create_date:', entry);
+                            return false;
+                        }
+                        const createDate = new Date(entry.create_date).getTime(); // Parse create_date as timestamp
+                        console.log(`Comparing create_date ${createDate} with start ${startDate} and end ${endDate}`);
+                        return createDate >= startDate && createDate <= endDate;
+                    });
+                    console.log('Filtered data:', filteredData);
+                }
+        
+                if (filteredData.length === 0) {
+                    console.log('No data found for the specified date range');
+                    return;
+                }
+        
+                const csvRows = [];
+                const headers = ['timestamp', 'product_id', 'product_name', 'name', 'latitude', 'longitude', 'create_date', 'upload_date'];
+                csvRows.push(headers.join(','));
+        
+                filteredData.forEach(entry => {
+                    const row = headers.map(header => entry[header] || '');
+                    csvRows.push(row.join(','));
+                });
+        
+                const csvString = csvRows.join('\n');
+        
+                const blob = new Blob([csvString], { type: 'text/csv' });
+        
+                const link = document.createElement('a');
+                link.href = window.URL.createObjectURL(blob);
+                link.download = 'ThisIsData.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        document.getElementById('dateform').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const startDate = new Date(document.getElementById('startdate').value).getTime();
+            const endDate = new Date(document.getElementById('enddate').value).getTime();
+            const filterField = document.getElementById('filterField').value;
+
+            console.log('Form submitted with:', { startDate, endDate, filterField });
+
+            fetchDataAndDownloadCSV(startDate, endDate, filterField);
+        });
+    </script>
+</body>
+</html>

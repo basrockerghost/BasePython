@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Data Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>CSV Data Viewer</h1>
+    <input type="file" id="uploadCsv" accept=".csv" />
+    <table id="csvTable"></table>
+
+    <script>
+        document.getElementById('uploadCsv').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                Papa.parse(file, {
+                    header: true,
+                    complete: function(results) {
+                        const data = results.data;
+                        const table = document.getElementById('csvTable');
+                        table.innerHTML = ''; // Clear any existing content
+
+                        // Create table header
+                        const headers = Object.keys(data[0]);
+                        const thead = document.createElement('thead');
+                        const headerRow = document.createElement('tr');
+                        headers.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow.appendChild(th);
+                        });
+                        thead.appendChild(headerRow);
+                        table.appendChild(thead);
+
+                        // Create table body
+                        const tbody = document.createElement('tbody');
+                        data.forEach(row => {
+                            const tr = document.createElement('tr');
+                            headers.forEach(header => {
+                                const td = document.createElement('td');
+                                let cellValue = row[header];
+
+                                // Check if the header includes 'date' and convert the value to a readable date format
+                                if (header.toLowerCase().includes('date')) {
+                                    // Try to parse the date assuming it's a timestamp
+                                    const timestamp = parseInt(cellValue, 10);
+                                    if (!isNaN(timestamp)) {
+                                        const date = new Date(timestamp);
+                                        if (!isNaN(date.getTime())) {
+                                            cellValue = date.toLocaleString();
+                                        }
+                                    }
+                                }
+
+                                td.textContent = cellValue;
+                                tr.appendChild(td);
+                            });
+                            tbody.appendChild(tr);
+                        });
+                        table.appendChild(tbody);
+                    },
+                    error: function(error) {
+                        console.error('Error reading CSV file:', error);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
